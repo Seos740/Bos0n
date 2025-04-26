@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bos0n Exploit Tool (iOS 8)</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f4;
+            text-align: center;
+            padding: 50px;
+        }
+
+        button {
+            background-color: #4CAF50;
+            color: white;
+            padding: 15px 32px;
+            font-size: 16px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        button:hover {
+            background-color: #45a049;
+        }
+
+        .output {
+            margin-top: 20px;
+            font-size: 20px;
+            color: #333;
+        }
+
+        select {
+            padding: 10px;
+            font-size: 16px;
+            margin-top: 20px;
+        }
+
+        label {
+            font-size: 18px;
+        }
+    </style>
+</head>
+<body>
+    <h1>Bos0n Exploit Tool (iOS 8)</h1>
+    
+    <!-- Dropdown for selecting iOS version -->
+    <label for="iosVersion">Select iOS Version (e.g., 8.4.1, 9.0.2): </label>
+    <select id="iosVersion">
+        <option value="8.0.0">8.0.0</option>
+        <option value="8.1.0">8.1.0</option>
+        <option value="8.2.0">8.2.0</option>
+        <option value="8.3.0">8.3.0</option>
+        <option value="8.4.0">8.4.0</option>
+        <option value="9.0.0">9.0.0</option>
+        <option value="9.1.0">9.1.0</option>
+        <option value="9.2.0">9.2.0</option>
+        <option value="9.3.0">9.3.0</option>
+    </select>
+    
+    <button id="runBtn">Execute Exploit</button>
+    
+    <p class="output" id="result">Result will be displayed here.</p>
+
+    <script>
+        let Module = {
+            onRuntimeInitialized: function() {
+                // This will be called once the WebAssembly runtime has initialized.
+                document.getElementById("runBtn").onclick = function() {
+                    // Get the selected iOS version from the dropdown
+                    let iosVersion = document.getElementById("iosVersion").value;
+                    let versionParts = iosVersion.split('.'); // Split into major, minor, patch version
+                    let majorVersion = parseInt(versionParts[0]);
+                    let minorVersion = parseInt(versionParts[1]);
+                    let patchVersion = parseInt(versionParts[2]);
+
+                    // Combine all parts into a single version number (e.g., 8.4.0 becomes 8040)
+                    let versionNumber = majorVersion * 10000 + minorVersion * 100 + patchVersion;
+
+                    // Create a pointer to the OS version and pass it to the WebAssembly exploit function
+                    let osPointer = Module._malloc(4); // Allocate space for the integer (4 bytes)
+                    Module.setValue(osPointer, versionNumber, 'i32'); // Set the version value in memory
+
+                    // Calling the exploit function from WebAssembly
+                    Module._exploit(osPointer);
+
+                    // Cleanup after calling the function
+                    Module._free(osPointer);
+
+                    document.getElementById("result").innerText = `Exploit function executed for iOS version: ${iosVersion}`;
+                };
+            }
+        };
+    </script>
+
+    <!-- WebAssembly and JavaScript glue code -->
+    <script src="exploit.js"></script>
+</body>
+</html>
